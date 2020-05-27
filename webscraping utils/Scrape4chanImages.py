@@ -22,15 +22,15 @@ def scrape(raw, board):
     res = json.loads(raw.content)
     for x in res['posts']:
         if 'ext' in x.keys():
-            tim = str(res['posts'][4]['tim'])
-            ext = res['posts'][4]['ext']
+            tim = str(x['tim'])
+            ext = x['ext']
             filename = tim + ext
             imageURL = 'https://i.4cdn.org/'+board+'/'+filename
             image = requests.get(imageURL)
             try:
                 image.raise_for_status()
             except Exception as exc:
-                print('Failed to get Image: %s' % (x))
+                print('Failed to get Image: %s' % (filename))
             fp = open(filename, 'wb')
             for chunk in image.iter_content(100000):
                 fp.write(chunk)
@@ -45,4 +45,4 @@ def main():
     raw = get(url)
     scrape(raw, b)
 
-# main()
+main()
