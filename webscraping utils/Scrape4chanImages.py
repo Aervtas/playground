@@ -76,6 +76,8 @@ def main():
         minheight = int(sys.argv[sys.argv.index('--h') + 1])
     if '--aspect' in sys.argv:
         requiredaspect = aspecthelper(sys.argv[sys.argv.index('--aspect') + 1])
+    if '--location' in sys.argv:
+        print('Not yet implemented.')
     if '--help' in sys.argv:
         print('Required:\n\t-url\t- Url of thread\nOptional:\n\t--w\t- Minimum required width of image\n\t--h\t- Minimum required height of image\n\t--aspect\t- Required aspect ratio for image download')
 
