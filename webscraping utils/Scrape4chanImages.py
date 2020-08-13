@@ -44,12 +44,12 @@ def downloadAll(board, x, foldername):
         image = requests.get(imageURL, timeout=10)
     except Timeout:
         print('Request timed out: %s' % (filename))
-    
+
     try:
         image.raise_for_status()
     except Exception as exc:
         print('Failed to get Image: %s' % (filename))
-        
+
     fp = open(os.path.join(foldername, os.path.basename(filename)), 'wb')
     for chunk in image.iter_content(100000):
         fp.write(chunk)
@@ -65,7 +65,7 @@ def main():
     minwidth = 0
     minheight = 0
     requiredaspect = 0.0
-    
+
     if '-url' not in sys.argv:
         raise Exception('No url')
     inURL = sys.argv[sys.argv.index('-url') + 1]
@@ -76,6 +76,8 @@ def main():
         minheight = int(sys.argv[sys.argv.index('--h') + 1])
     if '--aspect' in sys.argv:
         requiredaspect = aspecthelper(sys.argv[sys.argv.index('--aspect') + 1])
+    if '--help' in sys.argv:
+        print('Required:\n\t-url\t- Url of thread\nOptional:\n\t--w\t- Minimum required width of image\n\t--h\t- Minimum required height of image\n\t--aspect\t- Required aspect ratio for image download')
 
     b, t = parseurl(inURL)
     url = 'https://a.4cdn.org/'+b+'/thread/'+t+'.json'
@@ -100,10 +102,10 @@ def main():
             downloadThread = threading.Thread(target=scrape, args=(posts[index:length], b, minwidth, minheight, requiredaspect, foldername))
         downloadThreads.append(downloadThread)
         downloadThread.start()
-        
+
     for downloadThread in downloadThreads:
         downloadThread.join()
-    
+
     print('Done')
 
 main()
