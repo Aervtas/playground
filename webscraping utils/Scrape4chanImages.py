@@ -65,9 +65,13 @@ def main():
     minwidth = 0
     minheight = 0
     requiredaspect = 0.0
+    helpMessage = 'Required:\n\t-url\t- Url of thread\nOptional:\n\t--w\t- Minimum required width of image\n\t--h\t- Minimum required height of image\n\t--aspect\t- Required aspect ratio for image download'
 
     if '-url' not in sys.argv:
-        raise Exception('No url')
+    	if '--help' in sys.argv:
+    		print(helpMessage)
+    	else:
+        	raise Exception('No url')
     inURL = sys.argv[sys.argv.index('-url') + 1]
 
     if '--w' in sys.argv:
@@ -79,7 +83,7 @@ def main():
     if '--location' in sys.argv:
         print('Not yet implemented.')
     if '--help' in sys.argv:
-        print('Required:\n\t-url\t- Url of thread\nOptional:\n\t--w\t- Minimum required width of image\n\t--h\t- Minimum required height of image\n\t--aspect\t- Required aspect ratio for image download')
+        print(helpMessage)
 
     b, t = parseurl(inURL)
     url = 'https://a.4cdn.org/'+b+'/thread/'+t+'.json'
