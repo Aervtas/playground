@@ -62,16 +62,25 @@ def aspecthelper(txt):
     return numer/denom
 
 def main():
+    # Take and prepare command line arguments
+    # - Little to no error check for the base functionality
     minwidth = 0
     minheight = 0
     requiredaspect = 0.0
-    helpMessage = 'Required:\n\t-url\t- Url of thread\nOptional:\n\t--w\t- Minimum required width of image\n\t--h\t- Minimum required height of image\n\t--aspect\t- Required aspect ratio for image download'
+    helpMessage = """Required:
+    \t-url\t- Url of thread
+    Optional:
+    \t--w\t- Minimum required width of image
+    \t--h\t- Minimum required height of image
+    \t--aspect\t- Required aspect ratio for image download"""
 
     if '-url' not in sys.argv:
     	if '--help' in sys.argv:
-    		print(helpMessage)
-    	else:
-        	raise Exception('No url')
+            print(helpMessage)
+            return None
+    else:
+        raise Exception('No url')
+
     inURL = sys.argv[sys.argv.index('-url') + 1]
 
     if '--w' in sys.argv:
@@ -85,6 +94,9 @@ def main():
     if '--help' in sys.argv:
         print(helpMessage)
 
+    # Parse the provided url using regex
+    # Access the 4chan API to get thread information in form of JSON
+    # Create a folder to place the downloaded images
     b, t = parseurl(inURL)
     url = 'https://a.4cdn.org/'+b+'/thread/'+t+'.json'
     raw = get(url)
@@ -100,6 +112,7 @@ def main():
 
     os.makedirs(foldername, exist_ok=True)
 
+    # Multithread/Concurrency to not let the program hang while waiting for each download
     downloadThreads = []
     for index in range(0,length,it):
         if index+it <= length:
