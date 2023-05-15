@@ -42,7 +42,8 @@ def downloadAll(board, x, foldername):
 
     try:
         image = requests.get(imageURL, timeout=10)
-    except requests.Timeout:
+        print(image.status_code)
+    except requests.exceptions.Timeout:
         print('Request timed out: %s' % (filename))
 
     try:
