@@ -42,7 +42,7 @@ def downloadAll(board, x, foldername):
 
     try:
         image = requests.get(imageURL, timeout=10)
-    except Timeout:
+    except requests.Timeout:
         print('Request timed out: %s' % (filename))
 
     try:
@@ -74,11 +74,11 @@ def main():
     \t--h\t- Minimum required height of image
     \t--aspect\t- Required aspect ratio for image download"""
 
+    if '--help' in sys.argv:
+        print(helpMessage)
+        return None
+    
     if '-url' not in sys.argv:
-    	if '--help' in sys.argv:
-            print(helpMessage)
-            return None
-    else:
         raise Exception('No url')
 
     inURL = sys.argv[sys.argv.index('-url') + 1]
