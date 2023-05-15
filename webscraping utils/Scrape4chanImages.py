@@ -73,7 +73,8 @@ def main():
     Optional:
     \t--w\t- Minimum required width of image
     \t--h\t- Minimum required height of image
-    \t--aspect\t- Required aspect ratio for image download"""
+    \t--aspect\t- Required aspect ratio for image download
+    \t--location\t- Path to the folder being created"""
 
     if '--help' in sys.argv:
         print(helpMessage)
@@ -92,7 +93,7 @@ def main():
     if '--aspect' in sys.argv:
         requiredaspect = aspecthelper(sys.argv[sys.argv.index('--aspect') + 1])
     if '--location' in sys.argv:
-        folderPATH = sys.argv[sys.argv.index('--h') + 1]
+        folderPATH = sys.argv[sys.argv.index('--location') + 1]
         print(folderPATH)
 
     # Parse the provided url using regex
@@ -107,11 +108,12 @@ def main():
     it = round(length/10)
     foldername = ''
     if 'sub' in posts[0].keys():
-        foldername = posts[0]['sub']
+        foldername = folderPATH + posts[0]['sub']
     else:
-        foldername = str(posts[0]['no'])
+        foldername = folderPATH + str(posts[0]['no'])
 
-    os.makedirs(folderPATH+foldername, exist_ok=True)
+    print(foldername)
+    os.makedirs(foldername, exist_ok=True)
 
     # Multithread/Concurrency to not let the program hang while waiting for each download
     downloadThreads = []
