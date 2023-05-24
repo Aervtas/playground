@@ -1,5 +1,6 @@
 import tkinter as tk
 import json
+from thread_status import url_helper
 
 def load_data():
     # Load data from the JSON file
@@ -7,9 +8,18 @@ def load_data():
         with open("data.json", "r") as file:
             data = json.load(file)
     except FileNotFoundError:
-        data = {"column1": [], "column2": []}
+        data = {"url": [], "archived_url": []}
 
     return data
+
+def update_status():
+    remove_list = []
+    for i in range(len(data["url"])):
+        if url_helper(data["url"][i]):
+            data["archived_url"].append(data["url"][i])
+            remove_list.append(data["url"][i])
+    data["url"] = [i for i in data["url"] if i not in remove_list]
+    save_data(data)
 
 def save_data(data):
     # Save data to the JSON file
@@ -18,26 +28,31 @@ def save_data(data):
 
 def add_text():
     text = text_entry.get()
-
-    if selected_column.get() == "Column 1":
-        data["column1"].append(text)
-    elif selected_column.get() == "Column 2":
-        data["column2"].append(text)
-
+    data["url"].append(text)
     save_data(data)
+    update_status()
     refresh_lists()
+    text_entry.delete(0, tk.END)
 
 def refresh_lists():
     # Clear the existing lists
     listbox1.delete(0, tk.END)
     listbox2.delete(0, tk.END)
+    update_status()
 
     # Add items from the data to the lists
-    for item in data["column1"]:
+    for item in data["url"]:
         listbox1.insert(tk.END, item)
 
-    for item in data["column2"]:
+    for item in data["archived_url"]:
         listbox2.insert(tk.END, item)
+
+def launch_new_window(event):
+    selected_item = listbox2.get(listbox2.curselection())
+    new_window = tk.Toplevel(root)
+    new_window.title("Selected Item")
+    label = tk.Label(new_window, text=selected_item)
+    label.pack()
 
 # Load initial data from the JSON file
 data = load_data()
@@ -53,28 +68,32 @@ label.pack()
 text_entry = tk.Entry(root)
 text_entry.pack()
 
-# Create a radio button to select the column
-selected_column = tk.StringVar(value="Column 1")
-column1_radio = tk.Radiobutton(root, text="Column 1", variable=selected_column, value="Column 1")
-column1_radio.pack(anchor=tk.W)
-column2_radio = tk.Radiobutton(root, text="Column 2", variable=selected_column, value="Column 2")
-column2_radio.pack(anchor=tk.W)
-
-# Create a button to add text to the selected column
-button = tk.Button(root, text="Add Text", command=add_text)
+# Create a button to add text to active threads
+button = tk.Button(root, text="Add URL", command=add_text)
 button.pack()
 
-# Create a frame to hold the listboxes
-frame = tk.Frame(root)
-frame.pack(side=tk.LEFT)
+# Create a button to refresh status of all active urls
+button = tk.Button(root, text="Refresh", command=refresh_lists)
+button.pack()
+
+# Create a label for Column 1
+column1_label = tk.Label(root, text="Active")
+column1_label.pack()
 
 # Create a listbox for Column 1
-listbox1 = tk.Listbox(frame)
-listbox1.pack(side=tk.LEFT)
+listbox1 = tk.Listbox(root)
+listbox1.pack()
+
+# Create a label for Column 2
+column2_label = tk.Label(root, text="Archived")
+column2_label.pack()
 
 # Create a listbox for Column 2
-listbox2 = tk.Listbox(frame)
-listbox2.pack(side=tk.LEFT)
+listbox2 = tk.Listbox(root)
+listbox2.pack()
+
+# Bind the launch_new_window function to listbox item selection
+listbox2.bind("<<ListboxSelect>>", launch_new_window)
 
 # Refresh the lists initially
 refresh_lists()
