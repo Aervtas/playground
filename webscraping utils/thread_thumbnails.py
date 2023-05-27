@@ -1,75 +1,85 @@
-import tkinter as tk
 import requests
-from PIL import Image, ImageTk
+import tkinter as tk
+from tkinter import ttk
+from PIL import ImageTk, Image
+import tempfile
+import math
 
-def get_image_urls(board, thread_id):
-    api_url = f"https://a.4cdn.org/{board}/thread/{thread_id}.json"
-    response = requests.get(api_url)
-    data = response.json()
+def get_thread_thumbnails(board, thread_id):
+    url = f"https://a.4cdn.org/{board}/thread/{thread_id}.json"
+    response = requests.get(url)
+    if response.status_code == 200:
+        thread_data = response.json()
+        thumbnails = []
+        for post in thread_data["posts"]:
+            if "tim" in post and "ext" in post:
+                thumbnail_url = f"https://i.4cdn.org/{board}/{post['tim']}s{post['ext']}"
+                thumbnails.append(thumbnail_url)
+        return thumbnails
+    else:
+        return None
 
-    image_urls = []
-    for post in data["posts"]:
-        if "tim" in post and "ext" in post:
-            image_url = f"https://i.4cdn.org/{board}/{post['tim']}{post['ext']}"
-            image_urls.append(image_url)
+def calculate_thumbnail_size(frame, num_columns, num_thumbnails):
+    available_width = frame.winfo_width()
+    thumbnail_size = math.floor(available_width / num_columns)
+    return thumbnail_size
 
-    return image_urls
+def calculate_aspect_ratio_size(image_size, thumbnail_size):
+    width, height = image_size
+    if width > height:
+        ratio = thumbnail_size / width
+        width = thumbnail_size
+        height = math.floor(height * ratio)
+    else:
+        ratio = thumbnail_size / height
+        height = thumbnail_size
+        width = math.floor(width * ratio)
+    return width, height
 
-def download_images(image_urls):
-    images = []
-    for url in image_urls:
-        response = requests.get(url, stream=True)
-        response.raw.decode_content = True
-        image = Image.open(response.raw)
-        image = image.resize((100, 100))  # Adjust the size as per your needs
-        images.append(ImageTk.PhotoImage(image))
+def display_thumbnails(board, thread_id):
+    thumbnails = get_thread_thumbnails(board, thread_id)
+    if thumbnails is None:
+        print("Error fetching thread data")
+        return
 
-    return images
+    root = tk.Tk()
+    root.title("4chan Thread Thumbnails")
+    
+    frame = ttk.Frame(root, padding="10")
+    frame.grid(row=0, column=0, sticky="nsew")
 
-def update_images():
-    selected_board = board_var.get()
-    thread_id = thread_entry.get()
+    # Calculate the optimal thumbnail size based on the number of columns
+    num_columns = 5
+    thumbnail_size = calculate_thumbnail_size(frame, num_columns, len(thumbnails))
 
-    if selected_board and thread_id:
-        image_urls = get_image_urls(selected_board, thread_id)
-        images = download_images(image_urls)
+    for i, thumbnail_url in enumerate(thumbnails):
+        response = requests.get(thumbnail_url)
+        if response.status_code == 200:
+            image_data = response.content
 
-        # Clear existing images
-        for label in image_labels:
-            label.grid_forget()
-        image_labels.clear()
+            # Save image data to a temporary file
+            temp_file = tempfile.NamedTemporaryFile(delete=False)
+            temp_file.write(image_data)
+            temp_file.close()
 
-        # Display new images
-        columns = 3  # Number of columns in the grid
-        for i, image in enumerate(images):
-            row = i // columns
-            column = i % columns
-            label = tk.Label(root, image=image)
-            label.grid(row=row, column=column)
-            image_labels.append(label)
+            # Open the image using PIL
+            image = Image.open(temp_file.name)
 
-# Create the main window
-root = tk.Tk()
+            # Calculate the size based on the aspect ratio
+            width, height = calculate_aspect_ratio_size(image.size, thumbnail_size)
 
-# Board selection
-board_var = tk.StringVar()
-board_label = tk.Label(root, text="Board:")
-board_label.grid(row=0, column=0, sticky=tk.E)
-board_entry = tk.Entry(root, textvariable=board_var)
-board_entry.grid(row=0, column=1)
+            # Resize the image
+            image = image.resize((width, height))
 
-# Thread ID input
-thread_label = tk.Label(root, text="Thread ID:")
-thread_label.grid(row=1, column=0, sticky=tk.E)
-thread_entry = tk.Entry(root)
-thread_entry.grid(row=1, column=1)
+            # Create a Tkinter-compatible photo image
+            photo = ImageTk.PhotoImage(image)
 
-# Update button
-update_button = tk.Button(root, text="Update Images", command=update_images)
-update_button.grid(row=2, column=0, columnspan=2)
+            # Create a label with the photo image
+            label = ttk.Label(frame, image=photo)
+            label.grid(row=i // num_columns, column=i % num_columns, padx=5, pady=5)
+            label.image = photo
 
-# Image labels
-image_labels = []
+    root.mainloop()
 
-# Run the main event loop
-root.mainloop()
+# Example usage
+display_thumbnails("wg", 7979395)
