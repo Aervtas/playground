@@ -73,16 +73,18 @@ def main():
     Optional:
     \t--w\t- Minimum required width of image
     \t--h\t- Minimum required height of image
-    \t--aspect\t- Required aspect ratio for image download"""
+    \t--aspect\t- Required aspect ratio for image download
+    \t--location\t- Path to the folder being created"""
 
+    if '--help' in sys.argv:
+        print(helpMessage)
+        return None
+    
     if '-url' not in sys.argv:
-    	if '--help' in sys.argv:
-            print(helpMessage)
-            return None
-    else:
         raise Exception('No url')
 
     inURL = sys.argv[sys.argv.index('-url') + 1]
+    folderPATH = ''
 
     if '--w' in sys.argv:
         minwidth = int(sys.argv[sys.argv.index('--w') + 1])
@@ -91,9 +93,8 @@ def main():
     if '--aspect' in sys.argv:
         requiredaspect = aspecthelper(sys.argv[sys.argv.index('--aspect') + 1])
     if '--location' in sys.argv:
-        print('Not yet implemented.')
-    if '--help' in sys.argv:
-        print(helpMessage)
+        folderPATH = sys.argv[sys.argv.index('--location') + 1]
+        print(folderPATH)
 
     # Parse the provided url using regex
     # Access the 4chan API to get thread information in form of JSON
@@ -107,10 +108,11 @@ def main():
     it = round(length/10)
     foldername = ''
     if 'sub' in posts[0].keys():
-        foldername = posts[0]['sub']
+        foldername = folderPATH + posts[0]['sub']
     else:
-        foldername = str(posts[0]['no'])
+        foldername = folderPATH + str(posts[0]['no'])
 
+    print(foldername)
     os.makedirs(foldername, exist_ok=True)
 
     # Multithread/Concurrency to not let the program hang while waiting for each download
